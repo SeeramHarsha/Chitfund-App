@@ -1,5 +1,6 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
+import MongoStore from "connect-mongo";
 import { Express } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
@@ -33,10 +34,13 @@ export function setupAuth(app: Express) {
     secret: process.env.SESSION_SECRET || 'chitfund-secret-key',
     resave: false,
     saveUninitialized: false,
-    store: storage.sessionStore,
+    store: MongoStore.create({ // ✅ Proper MongoDB store
+        mongoUrl: process.env.MONGODB_URI!, // Add this to your .env
+        ttl: 30 * 24 * 60 * 60 // 30 days in seconds
+    }),
     cookie: {
-      secure: process.env.NODE_ENV === 'production',
-      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 30 * 24 * 60 * 60 * 1000
     }
   };
 
